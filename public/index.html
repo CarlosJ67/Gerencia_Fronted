@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>gymbulls.ico">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <noscript>
+        <strong>Lo sentimos, pero <%= htmlWebpackPlugin.options.title %> no funciona correctamente sin JavaScript. Habilítelo para continuar.</strong>
+    </noscript>
+    <div id="app"></div>
+
+    <!-- Importar CryptoJS para generar el hash -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <script>
+    (function () {
+        // Obtener la ruta actual
+        const currentPath = window.location.pathname;
+
+        // No cargar el chatbot en login o register
+        if (currentPath === "/login" || currentPath === "/register") {
+            return;
+        }
+
+        // Definir la clave secreta
+        const secret = "xdn52uqxt07jsvgmirgdgwqir7u320ok";
+
+        // Verificar que current_user exista antes de usarlo
+        const userId = window.current_user && window.current_user.id ? window.current_user.id : "default_id";
+
+        // Generar el hash HMAC-SHA256 usando CryptoJS
+        const hash = CryptoJS.HmacSHA256(userId, secret).toString();
+
+        // Cargar el chatbot de Chatbase
+        if (!window.chatbase || window.chatbase("getState") !== "initialized") {
+            window.chatbase = (...args) => {
+                if (!window.chatbase.q) {
+                    window.chatbase.q = [];
+                }
+                window.chatbase.q.push(args);
+            };
+            window.chatbase = new Proxy(window.chatbase, {
+                get(target, prop) {
+                    if (prop === "q") {
+                        return target.q;
+                    }
+                    return (...args) => target(prop, ...args);
+                },
+            });
+        }
+
+        const onLoad = function () {
+            const script = document.createElement("script");
+            script.src = "https://www.chatbase.co/embed.min.js";
+            script.id = "_rWYhq0K97ZJg5r92PSmp";
+            script.domain = "www.chatbase.co";
+            document.body.appendChild(script);
+        };
+
+        if (document.readyState === "complete") {
+            onLoad();
+        } else {
+            window.addEventListener("load", onLoad);
+        }
+    })();
+    </script>
+
+</body>
+</html>
